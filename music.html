@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qottlebup Music Player</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#1DB954', // Spotify Green
+                        'dark-bg': '#121212',
+                        'card-bg': '#181818',
+                        'text-light': '#b3b3b3',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for the player */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        /* Custom seek slider styling */
+        input[type=range].seek-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: #404040;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        input[type=range].seek-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            transition: background 0.15s ease-in-out;
+            box-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        input[type=range].seek-slider:hover::-webkit-slider-thumb {
+            background: #1DB954;
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <!-- Music Player Card -->
+    <div id="player-card" class="bg-card-bg p-8 w-full max-w-sm mx-4 sm:max-w-md rounded-2xl shadow-2xl transition-all duration-300">
+
+        <!-- Audio Element (Hidden) -->
+        <audio id="audio" src="YOUR_MUSIC_FILE_URL.mp3" preload="auto" onended="nextTrack()"></audio>
+
+        <!-- Album Art and Track Info -->
+        <div class="flex flex-col items-center mb-6">
+            <div id="album-art" class="w-48 h-48 sm:w-64 sm:h-64 bg-gray-700 rounded-xl shadow-lg mb-6 overflow-hidden flex items-center justify-center">
+                <!-- Placeholder Image (Replace with a real image URL or base64 data) -->
+                <img id="track-image" src="https://placehold.co/256x256/1DB954/white?text=A%26C" alt="Album Art" class="object-cover w-full h-full">
+            </div>
+            <h2 id="track-title" class="text-2xl font-bold text-white text-center">Loading Track...</h2>
+            <p id="track-artist" class="text-text-light text-center">Artist Name</p>
+        </div>
+
+        <!-- Seek Bar and Time Display -->
+        <div class="mb-6">
+            <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" max="100">
+            <div class="flex justify-between text-xs text-text-light mt-1">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <!-- Player Controls -->
+        <div class="flex justify-center items-center space-x-6">
+            <!-- Previous Button -->
+            <button id="prev-btn" class="text-text-light hover:text-white transition-colors duration-200 focus:outline-none" title="Previous Track">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                </svg>
+            </button>
+
+            <!-- Play/Pause Button -->
+            <button id="play-pause-btn" class="w-14 h-14 bg-primary text-dark-bg rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200 focus:outline-none" title="Play">
+                <!-- Play Icon (Default) -->
+                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <!-- Pause Icon (Hidden initially) -->
+                <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 19h4V5H6zm8-14v14h4V5z"/>
+                </svg>
+            </button>
+
+            <!-- Next Button -->
+            <button id="next-btn" class="text-text-light hover:text-white transition-colors duration-200 focus:outline-none" title="Next Track">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 6h-2v12h2zm-9.5 6l8.5-6v12z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Volume Control -->
+        <div class="flex items-center space-x-3 mt-8 pt-4 border-t border-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-text-light" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.81 5 3.54 5 6.71s-2.11 5.9-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+            <input type="range" id="volume-slider" class="w-full h-1 bg-gray-700 rounded-full appearance-none cursor-pointer" value="100" min="0" max="100">
+            <span id="volume-text" class="text-xs text-text-light w-6 text-right">100%</span>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Player Data ---
+        const playlist = [
+            {
+                title: "Feel good inc.",
+                artist: "Gorillaz",
+                source: "Gorillaz - Feel Good Inc HD.mp3", // <<< REPLACE THIS WITH YOUR OWN MP3 FILE URL
+                image: "600x600bf-60.jpg",
+            },
+            {
+                title: "Get it together",
+                artist: "The go team",
+                source: "Get%20It%20Together.mp3", // <<< REPLACE THIS WITH YOUR OWN MP3 FILE URL
+                image: "a3568873722_16.jpg",
+            },
+            {
+                title: "DreamScape",
+                artist: "Alexander Perls",
+                source: "009%20Sound%20System%20-%20Dreamscape.mp3", // <<< REPLACE THIS WITH YOUR OWN MP3 FILE URL
+                image: "soundsa.jpeg",
+            },
+        ];
+
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+
+        // --- DOM Elements ---
+        const audio = document.getElementById('audio');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const seekSlider = document.getElementById('seek-slider');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeText = document.getElementById('volume-text');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const trackTitleEl = document.getElementById('track-title');
+        const trackArtistEl = document.getElementById('track-artist');
+        const trackImageEl = document.getElementById('track-image');
+
+        // --- Utility Functions ---
+
+        /**
+         * Converts seconds into a formatted MM:SS string.
+         * @param {number} secs - Time in seconds.
+         * @returns {string} Formatted time string.
+         */
+        function formatTime(secs) {
+            const minutes = Math.floor(secs / 60);
+            const seconds = Math.floor(secs % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        /**
+         * Loads a track from the playlist into the audio element and updates the UI.
+         */
+        function loadTrack() {
+            const track = playlist[currentTrackIndex];
+            
+            // Update audio source
+            audio.src = track.source;
+            audio.load(); // Load the new source
+
+            // Update UI details
+            trackTitleEl.textContent = track.title;
+            trackArtistEl.textContent = track.artist;
+            trackImageEl.src = track.image;
+            
+            // Reset state
+            currentTimeEl.textContent = '0:00';
+            durationEl.textContent = '0:00';
+            seekSlider.value = 0;
+            
+            // If already playing, continue playing the new track
+            if (isPlaying) {
+                audio.play();
+            }
+        }
+
+        // --- Core Player Functions ---
+
+        /**
+         * Toggles between playing and pausing the audio.
+         */
+        function togglePlayPause() {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                playPauseBtn.title = 'Play';
+            } else {
+                // Check if audio has a valid source before playing
+                if (audio.src && audio.src.includes('.mp3')) {
+                    audio.play();
+                    isPlaying = true;
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                    playPauseBtn.title = 'Pause';
+                } else {
+                    console.error("Audio source is invalid. Please replace 'YOUR_MUSIC_FILE_URL.mp3' in the playlist with a valid URL.");
+                    trackTitleEl.textContent = "Error: Invalid Audio Source";
+                    trackArtistEl.textContent = "See console for details.";
+                }
+            }
+        }
+
+        /**
+         * Switches to the next track in the playlist.
+         */
+        function nextTrack() {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            loadTrack();
+            // Automatically play if the player was active
+            if (isPlaying) {
+                 audio.play();
+            } else {
+                togglePlayPause(); // Will start playing if we were paused
+            }
+        }
+
+        /**
+         * Switches to the previous track in the playlist.
+         */
+        function prevTrack() {
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            loadTrack();
+            if (isPlaying) {
+                audio.play();
+            }
+        }
+
+        // --- Event Handlers ---
+
+        // Play/Pause button
+        playPauseBtn.addEventListener('click', togglePlayPause);
+
+        // Next/Previous buttons
+        nextBtn.addEventListener('click', nextTrack);
+        prevBtn.addEventListener('click', prevTrack);
+
+        // Seek Bar logic
+        seekSlider.addEventListener('input', () => {
+            // Update the current time immediately while dragging
+            currentTimeEl.textContent = formatTime(seekSlider.value * audio.duration / 100);
+        });
+
+        seekSlider.addEventListener('change', () => {
+            // Jump to the new position when the user releases the slider
+            const seekTime = audio.duration * (seekSlider.value / 100);
+            audio.currentTime = seekTime;
+        });
+
+        // Volume Control logic
+        volumeSlider.addEventListener('input', () => {
+            const volume = volumeSlider.value / 100;
+            audio.volume = volume;
+            volumeText.textContent = `${volumeSlider.value}%`;
+        });
+        
+        // Audio Time and UI Updates
+        audio.addEventListener('loadedmetadata', () => {
+            // Set the max value for the seek slider once duration is known
+            // We set duration here too, but it might get updated again on 'canplaythrough'
+            durationEl.textContent = formatTime(audio.duration);
+            seekSlider.max = 100;
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            // Update the seek slider position only if the user is not actively dragging it
+            if (!seekSlider.matches(':active')) {
+                const percentage = (audio.currentTime / audio.duration) * 100;
+                seekSlider.value = isNaN(percentage) ? 0 : percentage;
+            }
+            // Always update the current time display
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+        });
+
+        // Track ended (uses onended event set directly on the audio tag, calling nextTrack)
+        // audio.onended is already set to nextTrack()
+
+        // --- Initialization ---
+
+        // Set initial volume
+        audio.volume = volumeSlider.value / 100;
+
+        // Load the first track on page load
+        loadTrack();
+
+        // Inform the user if the initial track source is the default placeholder
+        window.onload = () => {
+            if (playlist[0].source.includes('your-server.com')) {
+                const playerCard = document.getElementById('player-card');
+                
+                // Use a custom message box instead of alert()
+                const messageBox = document.createElement('div');
+                messageBox.className = "fixed top-4 right-4 bg-primary text-white p-4 rounded-xl shadow-2xl z-50 animate-pulse transition-opacity duration-500 opacity-90";
+                messageBox.innerHTML = '<strong>Important!</strong> Please edit the playlist in the JavaScript code and replace the mock URLs with actual MP3 file links to make the player work.';
+                document.body.appendChild(messageBox);
+
+                setTimeout(() => {
+                    messageBox.style.opacity = '0';
+                    setTimeout(() => messageBox.remove(), 500);
+                }, 8000);
+            }
+        };
+
+    </script>
+</body>
+</html>
